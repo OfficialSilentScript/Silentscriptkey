@@ -1,1 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Key Hub</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top left, #2b1055, #7597de);
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
 
+    .card {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      text-align: center;
+      animation: fadeIn 1s ease forwards;
+      max-width: 400px;
+      width: 100%;
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    h2 { margin-bottom: 20px; }
+
+    .key-box {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      overflow-wrap: break-word;
+      min-height: 30px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      margin-top: 10px;
+      transition: transform 0.2s ease;
+    }
+
+    button:active { transform: scale(0.97); }
+    .copy-btn { background: #4CAF50; color: white; }
+    .script-btn { background: #FF9800; color: white; }
+    .reset-btn { background: #2196F3; color: white; }
+    .main-btn { background: #9C27B0; color: white; }
+
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.7);
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      pointer-events: none;
+    }
+
+    @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
+
+    .loader {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Start Screen -->
+  <div id="startScreen" class="card">
+    <h2>🔑 Get Your Key</h2>
+    <p>Click below to continue</p>
+    <button class="main-btn" onclick="continueToKey()">Get Key</button>
+  </div>
+
+  <!-- Key Screen -->
+  <div id="keyScreen" class="card hidden">
+    <h2>🔑 Your Key</h2>
+    <div id="key" class="key-box">
+      <div class="loader"></div>
+    </div>
+    <button class="copy-btn" onclick="copyKey(event)">Copy Key</button>
+    <button class="script-btn" onclick="copyScript(event)">Copy Script</button>
+    <button class="reset-btn" onclick="location.reload()">Reset Progress</button>
+  </div>
+
+  <script>
+    const keyBox = document.getElementById("key");
+    let currentKey = "";
+    const webhookURL = "https://discord.com/api/webhooks/1413399307960455199/CS_noU0q5TibShqOYfUXbYBfgtLLIdOIlymKz1I5M-P7gisB6XTdTddBhq8nebWBoi59"; // <-- hier eintragen
+
+    // Helper: Ripple Effekt
+    function rippleEffect(e, button) {
+      const circle = document.createElement("span");
+      circle.classList.add("ripple");
+      const rect = button.getBoundingClientRect();
+      circle.style.left = (e.clientX - rect.left) + "px";
+      circle.style.top = (e.clientY - rect.top) + "px";
+      button.appendChild(circle);
+      setTimeout(() => circle.remove(), 600);
+    }
+
+    function copyKey(e) {
+      if (!currentKey) return;
+      navigator.clipboard.writeText(currentKey);
+      rippleEffect(e, e.currentTarget);
+    }
+
+    function copyScript(e) {
+      const script = `loadstring(game:HttpGet("https://raw.githubusercontent.com/Pingz0/SilentScripts/main/Main.lua"))()`;
+      navigator.clipboard.writeText(script);
+      rippleEffect(e, e.currentTarget);
+    }
+
+    async function loadKey() {
+      await new Promise(r => setTimeout(r, 2000)); // Loader Delay
+      try {
+        const res = await fetch("https://raw.githubusercontent.com/PingZCode/SSH/refs/heads/main/pubkey.txt");
+        const text = await res.text();
+        currentKey = text.split("\n")[0];
+        keyBox.textContent = currentKey;
+      } catch {
+        keyBox.textContent = "❌ Error loading key.";
+      }
+    }
+
+    function shortenIP(ip) {
+      if (ip.includes(".")) {
+        const parts = ip.split(".");
+        return parts[0] + "." + parts[1] + "...";
+      } else if (ip.includes(":")) {
+        return ip.split(":").slice(0,2).join(":") + "...";
+      }
+      return "Unknown";
+    }
+
+    async function makeSessionId(ip) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(ip);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return "Session-" + hashArray.slice(0,3).map(b => b.toString(16)).join("").toUpperCase();
+    }
+
+    async function sendWebhook() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        const ip = data.ip || "Unknown";
+        const ipShort = shortenIP(ip);
+        const sessionId = await makeSessionId(ip);
+
+        const embed = {
+          embeds: [{
+            title: "🔑 Key System Access",
+            color: 5814783,
+            fields: [
+              { name: "Session", value: sessionId, inline: false },
+              { name: "IP Hash", value: ipShort, inline: false },
+              { name: "Status", value: `User opened Key Page at ${new Date().toLocaleString()}`, inline: false }
+            ],
+            footer: { text: "Key Hub" },
+            timestamp: new Date().toISOString()
+          }]
+        };
+
+        await fetch(webhookURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(embed)
+        });
+      } catch (e) {
+        console.error("Webhook Error:", e);
+      }
+    }
+
+    async function continueToKey() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("keyScreen").classList.remove("hidden");
+
+      sendWebhook();
+      loadKey();
+    }
+  </script>
+</body>
+</html>
