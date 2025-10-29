@@ -1,212 +1,598 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Key Hub</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: radial-gradient(circle at top left, #2b1055, #7597de);
-      font-family: 'Segoe UI', sans-serif;
-      color: #fff;
-      overflow: hidden;
-    }
+    <meta charset="utf-8" />
+    <title>Key Hub — Modern</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        :root{
+            --bg1:#0f172a;
+            --bg2:#0b1226;
+            --accent:#7c5cff;
+            --accent-2:#2dd4bf;
+            --glass: rgba(255,255,255,0.06);
+            --glass-2: rgba(255,255,255,0.03);
+            --txt: #e6eef8;
+            --muted: #a9b4c7;
+            --success: #4caf50;
+            --danger:#ff6b6b;
+            --card-w:420px;
+        }
 
-    .card {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      text-align: center;
-      animation: fadeIn 1s ease forwards;
-      max-width: 400px;
-      width: 100%;
-      backdrop-filter: blur(10px);
-      position: relative;
-      overflow: hidden;
-    }
+        /* animated background */
+        body{
+            margin:0;
+            min-height:100vh;
+            font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            color:var(--txt);
+            background:
+                radial-gradient(600px 300px at 10% 10%, rgba(124,92,255,0.12), transparent 12%),
+                radial-gradient(500px 260px at 90% 90%, rgba(45,212,191,0.08), transparent 12%),
+                linear-gradient(180deg,var(--bg1),var(--bg2));
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+        }
 
-    h2 { margin-bottom: 20px; }
+        /* floating orbs for subtle motion */
+        .bg-orbs{
+            position:fixed;
+            inset:0;
+            pointer-events:none;
+            z-index:0;
+        }
+        .orb{
+            position:absolute;
+            border-radius:50%;
+            filter:blur(40px);
+            opacity:0.25;
+            animation: float 8s ease-in-out infinite;
+        }
+        .orb.a{ width:420px;height:420px; left:-8%; top:5%; background:linear-gradient(45deg, rgba(124,92,255,0.7), rgba(124,92,255,0.3)); animation-duration:12s; }
+        .orb.b{ width:300px;height:300px; right:-6%; bottom:10%; background:linear-gradient(45deg, rgba(45,212,191,0.6), rgba(45,212,191,0.25)); animation-duration:10s; transform-origin:center; }
+        @keyframes float { 0%{transform:translateY(0) rotate(0);}50%{transform:translateY(-18px) rotate(8deg);}100%{transform:translateY(0) rotate(0);} }
 
-    .key-box {
-      background: rgba(255,255,255,0.1);
-      border-radius: 10px;
-      padding: 10px;
-      margin-bottom: 15px;
-      font-size: 18px;
-      font-weight: bold;
-      letter-spacing: 1px;
-      overflow-wrap: break-word;
-      min-height: 30px;
-    }
+        /* card */
+        .wrap{
+            position:relative;
+            z-index:2;
+            width:clamp(320px, 90vw, var(--card-w));
+            max-width:95%;
+            margin:24px;
+        }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      margin-top: 10px;
-      transition: transform 0.2s ease;
-    }
+        .card{
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+            border-radius:16px;
+            padding:28px;
+            box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+            backdrop-filter: blur(8px) saturate(120%);
+            border:1px solid rgba(255,255,255,0.04);
+            overflow:hidden;
+        }
 
-    button:active { transform: scale(0.97); }
-    .copy-btn { background: #4CAF50; color: white; }
-    .script-btn { background: #FF9800; color: white; }
-    .reset-btn { background: #2196F3; color: white; }
-    .main-btn { background: #9C27B0; color: white; }
+        header{
+            display:flex;
+            gap:12px;
+            align-items:center;
+            margin-bottom:18px;
+        }
+        .logo{
+            width:56px;height:56px;border-radius:12px;
+            background: linear-gradient(135deg,var(--accent),var(--accent-2));
+            display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;
+            box-shadow: 0 6px 18px rgba(124,92,255,0.16);
+            transform:translateZ(0);
+        }
+        h1{ font-size:18px; margin:0; letter-spacing:-0.2px; }
+        p.lead{ margin:0;color:var(--muted); font-size:13px; }
 
-    .ripple {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.7);
-      transform: scale(0);
-      animation: ripple 0.6s linear;
-      pointer-events: none;
-    }
+        .center{
+            text-align:center;
+        }
 
-    @keyframes ripple { to { transform: scale(4); opacity: 0; } }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
+        .btn{
+            display:inline-flex;
+            align-items:center;
+            gap:10px;
+            border:0;
+            padding:10px 14px;
+            border-radius:10px;
+            cursor:pointer;
+            color:white;
+            font-weight:600;
+            transition: transform .16s ease, box-shadow .16s ease;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.5);
+        }
+        .btn:active{ transform:translateY(1px) scale(.995); }
+        .btn:focus{ outline:2px solid rgba(255,255,255,0.06); outline-offset:2px; }
 
-    .loader {
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid #fff;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
-    }
+        .primary{ background: linear-gradient(90deg,var(--accent),#a27bff); }
+        .accent{ background: linear-gradient(90deg,var(--accent-2),#35c2a3); color:#06211f; }
+        .ghost{ background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--txt); }
 
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .hidden { display: none; }
-  </style>
+        /* key area */
+        .key-wrap{
+            margin-top:16px;
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+        }
+
+        .key-box{
+            background: linear-gradient(180deg,var(--glass),var(--glass-2));
+            border-radius:12px;
+            padding:14px;
+            min-height:56px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+            letter-spacing:0.9px;
+            font-size:14px;
+            color:var(--txt);
+            box-shadow: inset 0 -6px 18px rgba(2,6,23,0.3);
+            position:relative;
+            overflow:hidden;
+        }
+
+        .placeholder{
+            color:var(--muted); font-size:13px;
+            display:flex;align-items:center;gap:8px;
+        }
+
+        .actions{
+            display:flex;
+            gap:8px;
+            align-items:center;
+        }
+        .icon-btn{
+            padding:8px 10px;
+            border-radius:9px;
+            background:rgba(255,255,255,0.02);
+            border:1px solid rgba(255,255,255,0.03);
+            cursor:pointer;
+            transition: background .14s ease, transform .12s ease, box-shadow .12s ease;
+            display:inline-flex; align-items:center; justify-content:center;
+        }
+        .icon-btn:hover{ transform:translateY(-4px); box-shadow:0 10px 30px rgba(2,6,23,0.5); background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); }
+
+        /* ripple */
+        .ripple{
+            position:absolute;border-radius:50%;transform:scale(0);opacity:.9;background:rgba(255,255,255,0.6);pointer-events:none;
+            animation:ripple .6s linear forwards;
+        }
+        @keyframes ripple{ to{ transform:scale(6); opacity:0; } }
+
+        /* loader and typing */
+        .loader{
+            width:42px;height:42px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));
+            display:inline-grid;place-items:center;color:#06211f;font-weight:700; font-size:12px;
+            box-shadow:0 8px 26px rgba(124,92,255,0.18);
+            animation:pop 900ms cubic-bezier(.25,.9,.35,1) infinite alternate;
+        }
+        @keyframes pop{ from{ transform:translateY(0)} to{ transform:translateY(-6px) } }
+
+        .typing{
+            white-space:pre-wrap;
+            overflow-wrap:break-word;
+            word-break:break-all;
+            font-size:14px;
+            line-height:1.2;
+            min-height:20px;
+        }
+
+        /* small footer line */
+        .meta{
+            margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; color:var(--muted); font-size:13px;
+        }
+
+        .last-updated{ font-size:12px; color:var(--muted); }
+        .status { font-weight:600; font-size:13px; color:var(--muted); }
+
+        /* toast */
+        .toast{
+            position:fixed; left:50%; transform:translateX(-50%) translateY(40px); bottom:22px;
+            background:#0b1226; color:var(--txt); padding:10px 16px; border-radius:10px; box-shadow:0 8px 30px rgba(2,6,23,0.6); opacity:0; transition:opacity .22s ease, transform .22s ease; z-index:6;
+            pointer-events:none;
+        }
+        .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+
+        /* LIVE box styles */
+        .live-box {
+            background: linear-gradient(180deg, var(--glass), var(--glass-2));
+            border-radius: 12px;
+            padding: 10px 14px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+            letter-spacing: 0.9px;
+            font-size: 14px;
+            color: var(--txt);
+            box-shadow: inset 0 -6px 18px rgba(2, 6, 23, 0.3);
+            position: relative;
+            overflow: hidden;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        /* responsive tweaks */
+        @media (max-width:420px){
+            .logo{ width:48px;height:48px; font-size:18px; }
+        }
+    </style>
 </head>
 <body>
-
-  <!-- Start Screen -->
-  <div id="startScreen" class="card">
-    <h2>🔑 Get Your Key</h2>
-    <p>Click below to continue</p>
-    <button class="main-btn" onclick="continueToKey()">Get Key</button>
-  </div>
-
-  <!-- Key Screen -->
-  <div id="keyScreen" class="card hidden">
-    <h2>🔑 Your Key</h2>
-    <div id="key" class="key-box">
-      <div class="loader"></div>
+    <div class="bg-orbs" aria-hidden="true">
+        <div class="orb a"></div>
+        <div class="orb b"></div>
     </div>
-    <button class="copy-btn" onclick="copyKey(event)">Copy Key</button>
-    <button class="script-btn" onclick="copyScript(event)">Copy Script</button>
-    <button class="reset-btn" onclick="location.reload()">Reset Progress</button>
-  </div>
 
-  <script>
-    const keyBox = document.getElementById("key");
-    let currentKey = "";
-    const webhookURL = "https://discord.com/api/webhooks/1413399307960455199/CS_noU0q5TibShqOYfUXbYBfgtLLIdOIlymKz1I5M-P7gisB6XTdTddBhq8nebWBoi59";
+    <main class="wrap" role="main">
+        <!-- START CARD -->
+        <section id="startCard" class="card" aria-labelledby="startTitle">
+            <header>
+                <div class="logo" style="background:linear-gradient(135deg,var(--accent),var(--accent-2));">SS</div>
+                <div>
+                    <h1 id="startTitle">Silent Scripts</h1>
+                    <p class="lead">Securely reveal and copy your public key — improved UI & animations</p>
+                </div>
+            </header>
 
-    // Helper: Ripple Effekt
-    function rippleEffect(e, button) {
-      const circle = document.createElement("span");
-      circle.classList.add("ripple");
-      const rect = button.getBoundingClientRect();
-      circle.style.left = (e.clientX - rect.left) + "px";
-      circle.style.top = (e.clientY - rect.top) + "px";
-      button.appendChild(circle);
-      setTimeout(() => circle.remove(), 600);
-    }
+            <div class="center">
+                <p style="color:var(--muted); margin:0 0 14px;">Click the button to Get Your Key</p>
+                <button id="getBtn" class="btn primary" aria-label="Get Key">🔑 Get Key</button>
+            </div>
+        </section>
 
-    function copyKey(e) {
-      if (!currentKey) return;
-      navigator.clipboard.writeText(currentKey);
-      rippleEffect(e, e.currentTarget);
-    }
+        <!-- KEY CARD (hidden) -->
+        <section id="keyCard" class="card" style="display:none;" aria-labelledby="keyTitle">
+            <header>
+                <div class="logo" style="background:linear-gradient(90deg,var(--accent-2),var(--accent));">SS</div>
+                <div>
+                    <h1 id="keyTitle">Your Key</h1>
+                    <p class="lead">Copy the key or a small script with one click</p>
+                </div>
+            </header>
 
-    function copyScript(e) {
-      const script = `loadstring(game:HttpGet("https://raw.githubusercontent.com/Pingz0/SilentScripts/main/Main.lua"))()`;
-      navigator.clipboard.writeText(script);
-      rippleEffect(e, e.currentTarget);
-    }
+            <div class="key-wrap">
+                <div class="key-box" id="keyBox" role="status" aria-live="polite">
+                    <div class="typing placeholder" id="keyText">
+                        <span class="loader" id="miniLoader">...</span>
+                        <span style="margin-left:10px; color:var(--muted);">Loading key…</span>
+                    </div>
 
-    async function loadKey() {
-      await new Promise(r => setTimeout(r, 2000)); // Loader Delay
-      try {
-        const res = await fetch("https://raw.githubusercontent.com/PingZCode/SSH/refs/heads/main/pubkey.txt");
-        const text = await res.text();
-        currentKey = text.split("\n")[0];
-        keyBox.textContent = currentKey;
-      } catch {
-        keyBox.textContent = "❌ Error loading key.";
-      }
-    }
+                    <div class="actions" aria-hidden="true">
+                        <button class="icon-btn ghost" id="copyBtn" title="Copy key">
+                            📋
+                        </button>
+                        <button class="icon-btn ghost" id="scriptBtn" title="Copy quick script">
+                            🧩
+                        </button>
+                    </div>
+                </div>
 
-    function shortenIP(ip) {
-      if (ip.includes(".")) {
-        const parts = ip.split(".");
-        return parts[0] + "." + parts[1] + "...";
-      } else if (ip.includes(":")) {
-        return ip.split(":").slice(0,2).join(":") + "...";
-      }
-      return "Unknown";
-    }
+                <div class="meta">
+                    <div class="live-box" id="liveBox">
+                        Last Updated: <span id="liveCounter">00:00:00:00</span>
+                    </div>
+                    <div class="status" id="statusLabel">Ready</div>
+                </div>
 
-    async function makeSessionId(ip) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(ip);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return "Session-" + hashArray.slice(0,3).map(b => b.toString(16)).join("").toUpperCase();
-    }
+                <div style="display:flex; gap:8px; margin-top:6px;">
+                    <button class="btn accent" id="copyAllBtn">Copy Key</button>
+                    <button class="btn ghost" id="resetBtn">Reset</button>
+                </div>
+            </div>
+        </section>
+    </main>
 
-    async function sendWebhook() {
-      try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        const data = await res.json();
-        const ip = data.ip || "Unknown";
-        const ipShort = shortenIP(ip);
-        const sessionId = await makeSessionId(ip);
+    <div id="toast" class="toast" role="status" aria-live="assertive"></div>
 
-        const embed = {
-          embeds: [{
-            title: "🔑 Key System Access",
-            color: 5814783,
-            fields: [
-              { name: "Session", value: sessionId, inline: false },
-              { name: "IP Hash", value: ipShort, inline: false },
-              { name: "Status", value: `User opened Key Page at ${new Date().toLocaleString()}`, inline: false }
-            ],
-            footer: { text: "Key Hub" },
-            timestamp: new Date().toISOString()
-          }]
-        };
+    <script>
+        // GitHub Copilot
+        const startCard = document.getElementById('startCard');
+        const keyCard = document.getElementById('keyCard');
+        const getBtn = document.getElementById('getBtn');
+        const keyText = document.getElementById('keyText');
+        const keyBox = document.getElementById('keyBox');
+        const statusLabel = document.getElementById('statusLabel');
+        const copyBtn = document.getElementById('copyBtn');
+        const scriptBtn = document.getElementById('scriptBtn');
+        const copyAllBtn = document.getElementById('copyAllBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const toast = document.getElementById('toast');
+        const liveBox = document.getElementById('liveBox');
+        const liveCounterEl = document.getElementById('liveCounter');
 
-        await fetch(webhookURL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(embed)
+        // -- CONFIG (change as needed) --
+        const KEY_RAW_URL = 'https://raw.githubusercontent.com/PingZCode/SSH/main/pubkey.txt';
+        const GITHUB_COMMIT_API = 'https://api.github.com/repos/PingZCode/SSH/commits?path=pubkey.txt&per_page=1';
+        const QUICK_SCRIPT = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/Pingz0/SilentScripts/main/Main.lua"))()';
+
+        let currentKey = '';
+        let lastUpdatedTimestamp = null; // ms since epoch or null
+        let liveInterval = null;
+
+        // small helper: show persistent toast
+        function showToast(msg, timeout = 2200){
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast._t);
+            toast._t = setTimeout(()=> toast.classList.remove('show'), timeout);
+        }
+
+        // ripple effect for buttons
+        function ripple(e){
+            const btn = e.currentTarget;
+            const r = document.createElement('span');
+            r.className = 'ripple';
+            const rect = btn.getBoundingClientRect();
+            r.style.left = (e.clientX - rect.left) + 'px';
+            r.style.top = (e.clientY - rect.top) + 'px';
+            r.style.width = r.style.height = Math.max(rect.width, rect.height) + 'px';
+            btn.appendChild(r);
+            setTimeout(()=> r.remove(), 650);
+        }
+
+        // typing animation for reveal
+        async function typeReveal(text, targetEl, speed = 28){
+            targetEl.classList.remove('placeholder');
+            targetEl.textContent = '';
+            for (let i=0;i<text.length;i++){
+                targetEl.textContent += text[i];
+                await new Promise(r => setTimeout(r, Math.random()*speed + speed/2));
+            }
+        }
+
+        // fetch the key and last commit date (GitHub API)
+        async function fetchKeyAndMeta(){
+            statusLabel.textContent = 'Fetching key…';
+            // show inline loader
+            keyText.innerHTML = `<span class="loader" id="miniLoader">...</span><span style="margin-left:10px;color:var(--muted)">Loading key…</span>`;
+
+            let key = '';
+            let updated = null;
+
+            try {
+                // fetch raw key
+                const r = await fetch(KEY_RAW_URL, {cache:'no-store'});
+                if (!r.ok) throw new Error('Key fetch failed');
+                const txt = await r.text();
+                key = txt.split(/\r?\n/)[0] || '';
+            } catch (err) {
+                key = '';
+                console.warn('Key fetch error', err);
+            }
+
+            // try GitHub commits API to get last commit date for file
+            try {
+                const j = await fetch(GITHUB_COMMIT_API, {cache:'no-store'});
+                if (j.ok){
+                    const arr = await j.json();
+                    if (Array.isArray(arr) && arr.length){
+                        updated = arr[0].commit.committer.date;
+                    }
+                }
+            } catch (err){ /* ignore */ }
+
+            return { key, updated };
+        }
+
+        // Format duration (ms) to DD:HH:MM:SS
+        function formatDuration(ms) {
+            if (!Number.isFinite(ms) || ms < 0) ms = 0;
+            const totalSeconds = Math.floor(ms / 1000);
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            const pad2 = n => String(n).padStart(2, '0');
+            return `${String(days).padStart(2,'0')}:${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}`;
+        }
+
+        // create human readable detailed date: DD:MM:YYYY HH:MM:SS
+        function detailedDateString(date) {
+            const d = new Date(date);
+            const pad2 = n => String(n).padStart(2,'0');
+            return `${pad2(d.getDate())}:${pad2(d.getMonth()+1)}:${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+        }
+
+        // update the small LIVE counter (shows time since the file was updated)
+        function updateLiveCounterOnce() {
+            if (!lastUpdatedTimestamp) {
+                liveCounterEl.textContent = '00:00:00:00';
+                return;
+            }
+            const now = Date.now();
+            const diff = now - lastUpdatedTimestamp;
+            liveCounterEl.textContent = formatDuration(diff);
+        }
+
+        // start / restart interval that updates the live counter every second
+        function startLiveInterval() {
+            // clear existing interval
+            if (liveInterval) clearInterval(liveInterval);
+            // immediate update then every second
+            updateLiveCounterOnce();
+            liveInterval = setInterval(updateLiveCounterOnce, 1000);
+        }
+
+        // show key screen and reveal key
+        async function revealKeyFlow(){
+            startCard.style.display = 'none';
+            keyCard.style.display = 'block';
+            statusLabel.textContent = 'Preparing…';
+            const { key, updated } = await fetchKeyAndMeta();
+
+            if (!key){
+                keyText.textContent = '❌ Error loading key.';
+                statusLabel.textContent = 'Error';
+                // reset live timestamp
+                lastUpdatedTimestamp = null;
+                startLiveInterval(); // shows zeros
+                return;
+            }
+
+            currentKey = key.trim();
+            // display last updated
+            if (updated){
+                // parse timestamp and store for live counter
+                lastUpdatedTimestamp = Date.parse(updated);
+                // start live updater
+                startLiveInterval();
+            } else {
+                lastUpdatedTimestamp = null;
+                startLiveInterval();
+            }
+
+            // cosmetic delay then typing
+            await new Promise(r => setTimeout(r, 450));
+            await typeReveal(currentKey, keyText, 18);
+            statusLabel.textContent = 'Ready';
+        }
+
+        // copy helper
+        async function copyToClipboard(text, hint){
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast(hint || 'Copied!');
+            } catch (e){
+                showToast('Copy failed');
+                console.error('Copy failed', e);
+            }
+        }
+
+        // event wwirin
+/* ---- REPLACE Get-Key handler: masked IP (first 5 chars) webhook ---- */
+
+// Put your webhook URL here:
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1407253361631170660/P87NdFoqrRIO67f6RDLuI7YCfkr72lSRJzFm-3YLivcl7RAyIoEaQdji93-jUI1aAAgd";
+
+// persistent session id per browser (stored in localStorage)
+function getSessionId() {
+  let id = localStorage.getItem("ss_session_id");
+  if (!id) {
+    id = "S-" + Math.random().toString(36).slice(2, 10).toUpperCase();
+    localStorage.setItem("ss_session_id", id);
+  }
+  return id;
+}
+
+// fetch public IP (third-party service) and return masked first 5 chars + "..."
+async function fetchMaskedIpFirst30() {
+  try {
+    const res = await fetch("https://api.ipify.org?format=json");
+    if (!res.ok) throw new Error("ip fetch failed");
+    const obj = await res.json();
+    const ip = String(obj.ip || "unknown");
+    // take first 5 chars (works for IPv4/IPv6 short mask)
+    const short = ip.substring(0, 30);
+    return short + "...";
+  } catch (e) {
+    return "unk..";
+  }
+}
+
+// send embed to discord webhook (blue color) - non-blocking (fire-and-forget)
+async function sendMaskedWebhook(actionLabel = "Key Access") {
+  try {
+    const session = getSessionId();
+    const time = new Date().toLocaleString();
+    const ipMasked = await fetchMaskedIpFirst30();
+
+    const payload = {
+      embeds: [{
+        title: "🔵 Key Access",
+        color: 3447003, // blue
+        fields: [
+          { name: "Session", value: session, inline: true },
+          { name: "IP (Full)", value: ipMasked, inline: true },
+          { name: "Time", value: time, inline: false }
+        ],
+        footer: { text: "SilentScript" },
+        timestamp: new Date().toISOString()
+      }]
+    };
+
+    // send, but don't block if it fails
+    fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).catch(err => {
+      console.warn("Webhook failed:", err);
+    });
+
+  } catch (err) {
+    console.warn("sendMaskedWebhook error:", err);
+  }
+}
+
+/* Replace existing getBtn click listener with this: */
+getBtn.replaceWith(getBtn.cloneNode(true)); // remove prior listeners reliably
+const NEW_getBtn = document.getElementById('getBtn'); // re-query
+NEW_getBtn.addEventListener('click', async (e) => {
+  // visual ripple (your function)
+  try { ripple(e); } catch (err) { /* ignore if ripple not available */ }
+
+  // fire webhook (masked IP) without blocking the user flow
+  sendMaskedWebhook("User clicked Get Key");
+
+  // continue with your existing reveal flow
+  try {
+    await revealKeyFlow();
+  } catch (err) {
+    console.error("revealKeyFlow error:", err);
+  }
+});
+
+        copyBtn.addEventListener('click', (e)=>{
+            if (!currentKey){ showToast('No key loaded'); return; }
+            ripple(e);
+            copyToClipboard(currentKey, 'Key copied');
         });
-      } catch (e) {
-        console.error("Webhook Error:", e);
-      }
-    }
 
-    async function continueToKey() {
-      document.getElementById("startScreen").classList.add("hidden");
-      document.getElementById("keyScreen").classList.remove("hidden");
+        copyAllBtn.addEventListener('click', (e)=>{
+            if (!currentKey){ showToast('No key loaded'); return; }
+            ripple(e);
+            copyToClipboard(currentKey, 'Key copied');
+        });
 
-      sendWebhook();
-      loadKey();
-    }
-  </script>
+        scriptBtn.addEventListener('click', (e)=>{
+            ripple(e);
+            copyToClipboard(QUICK_SCRIPT, 'Script copied');
+        });
+
+        resetBtn.addEventListener('click', ()=>{
+            // quick reset: go back to start
+            currentKey = '';
+            keyText.innerHTML = `<span class="loader" id="miniLoader">...</span><span style="margin-left:10px;color:var(--muted)">Loading key…</span>`;
+            statusLabel.textContent = 'Ready';
+            keyCard.style.display = 'none';
+            startCard.style.display = 'block';
+        });
+
+        // keyboard accessibility: Enter on focused primary
+        getBtn.addEventListener('keydown', (ev)=>{
+            if (ev.key === 'Enter') getBtn.click();
+        });
+
+        // small accessibility: allow clicking space/enter on icon buttons
+        [copyBtn, scriptBtn].forEach(btn => {
+            btn.addEventListener('keydown', (ev)=> { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); btn.click(); }});
+            btn.addEventListener('click', ripple);
+        });
+        copyAllBtn.addEventListener('click', ripple);
+        resetBtn.addEventListener('click', ripple);
+
+        // initialize live counter to zeros on load
+        updateLiveCounterOnce();
+    </script>
 </body>
 </html>
